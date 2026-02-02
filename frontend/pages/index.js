@@ -4,15 +4,26 @@ export default function Home() {
   const [sequence, setSequence] = useState([]);
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/puzzle/today")
-      .then(res => res.json())
-      .then(data => setSequence(data.sequence));
+    fetch("/api/puzzle/today")
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch puzzle");
+        }
+        return res.json();
+      })
+      .then(data => {
+        setSequence(data.sequence || []);
+      })
+      .catch(() => {
+        setError("Failed to load puzzle");
+      });
   }, []);
 
   const submitAnswer = async () => {
-    const res = await fetch("http://localhost:5000/puzzle/answer", {
+    const res = await fetch("/api/puzzle/answer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer })
@@ -26,7 +37,14 @@ export default function Home() {
     <main style={{ padding: 40, fontFamily: "Arial" }}>
       <h1>🧠 Daily Pattern Puzzle</h1>
 
-      <h2>{sequence.join(" → ")} → ?</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <h2>
+        {sequence.length > 0
+          ? sequence.join(" → ")
+          : "Loading..."}{" "}
+        → ?
+      </h2>
 
       <input
         type="number"
