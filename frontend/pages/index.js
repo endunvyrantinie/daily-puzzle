@@ -4,21 +4,14 @@ export default function Home() {
   const [sequence, setSequence] = useState([]);
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/puzzle/today")
-      .then(res => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch puzzle");
-        }
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
         setSequence(data.sequence || []);
-      })
-      .catch(() => {
-        setError("Failed to load puzzle");
+        setLoading(false);
       });
   }, []);
 
@@ -28,42 +21,102 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer })
     });
-
     const data = await res.json();
     setResult(data.correct);
   };
 
   return (
-    <main style={{ padding: 40, fontFamily: "Arial" }}>
-      <h1>🧠 Daily Pattern Puzzle</h1>
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <div style={styles.badge}>DAILY PUZZLE</div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        <h1 style={styles.sequence}>
+          {loading ? "Loading…" : `${sequence.join("  →  ")}  →  ?`}
+        </h1>
 
-      <h2>
-        {sequence.length > 0
-          ? sequence.join(" → ")
-          : "Loading..."}{" "}
-        → ?
-      </h2>
+        <input
+          type="number"
+          value={answer}
+          onChange={e => setAnswer(e.target.value)}
+          placeholder="Your answer"
+          style={styles.input}
+        />
 
-      <input
-        type="number"
-        value={answer}
-        onChange={e => setAnswer(e.target.value)}
-        style={{ padding: 8, fontSize: 16 }}
-      />
+        <button onClick={submitAnswer} style={styles.button}>
+          Check Answer
+        </button>
 
-      <br /><br />
+        {result !== null && (
+          <div style={styles.result}>
+            {result ? "🎉 Correct!" : "❌ Try again"}
+          </div>
+        )}
 
-      <button onClick={submitAnswer} style={{ padding: 10 }}>
-        Submit
-      </button>
-
-      {result !== null && (
-        <p style={{ marginTop: 20 }}>
-          {result ? "✅ Correct!" : "❌ Wrong"}
+        <p style={styles.footer}>
+          New puzzle every day • Train your brain
         </p>
-      )}
-    </main>
+      </div>
+    </div>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#0f172a",
+    padding: 20
+  },
+  card: {
+    background: "#ffffff",
+    borderRadius: 18,
+    padding: "32px 28px",
+    maxWidth: 420,
+    width: "100%",
+    textAlign: "center",
+    boxShadow: "0 25px 50px rgba(0,0,0,0.4)"
+  },
+  badge: {
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: 1,
+    color: "#2563eb",
+    marginBottom: 16
+  },
+  sequence: {
+    fontSize: 26,
+    fontWeight: 700,
+    marginBottom: 24
+  },
+  input: {
+    width: "100%",
+    padding: 14,
+    fontSize: 18,
+    borderRadius: 10,
+    border: "1px solid #cbd5e1",
+    marginBottom: 16
+  },
+  button: {
+    width: "100%",
+    padding: 14,
+    fontSize: 18,
+    fontWeight: 600,
+    borderRadius: 10,
+    border: "none",
+    background: "#2563eb",
+    color: "#fff",
+    cursor: "pointer"
+  },
+  result: {
+    marginTop: 18,
+    fontSize: 18,
+    fontWeight: 600
+  },
+  footer: {
+    marginTop: 28,
+    fontSize: 12,
+    color: "#64748b"
+  }
+};
