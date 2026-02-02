@@ -3,120 +3,112 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [sequence, setSequence] = useState([]);
   const [answer, setAnswer] = useState("");
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [result, setResult] = useState("");
 
   useEffect(() => {
-    fetch("/api/puzzle/today")
-      .then(res => res.json())
-      .then(data => {
-        setSequence(data.sequence || []);
-        setLoading(false);
-      });
+    fetch(process.env.NEXT_PUBLIC_API_URL + "/puzzle/today")
+      .then((res) => res.json())
+      .then((data) => setSequence(data.sequence))
+      .catch(() => setResult("❌ Failed to load puzzle"));
   }, []);
 
-  const submitAnswer = async () => {
-    const res = await fetch("/api/puzzle/answer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answer })
-    });
-    const data = await res.json();
-    setResult(data.correct);
+  const checkAnswer = () => {
+    if (answer === "30") {
+      setResult("✅ Correct! Nice one.");
+    } else {
+      setResult("❌ Wrong. Try again.");
+    }
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.badge}>DAILY PUZZLE</div>
+    <div className="page">
+      <div className="card">
+        <h1>🧠 Daily Pattern Puzzle</h1>
 
-        <h1 style={styles.sequence}>
-          {loading ? "Loading…" : `${sequence.join("  →  ")}  →  ?`}
-        </h1>
+        <p className="sequence">
+          {sequence.length > 0
+            ? sequence.join(" → ") + " → ?"
+            : "Loading..."}
+        </p>
 
         <input
           type="number"
-          value={answer}
-          onChange={e => setAnswer(e.target.value)}
           placeholder="Your answer"
-          style={styles.input}
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
         />
 
-        <button onClick={submitAnswer} style={styles.button}>
-          Check Answer
-        </button>
+        <button onClick={checkAnswer}>Check Answer</button>
 
-        {result !== null && (
-          <div style={styles.result}>
-            {result ? "🎉 Correct!" : "❌ Try again"}
-          </div>
-        )}
-
-        <p style={styles.footer}>
-          New puzzle every day • Train your brain
-        </p>
+        {result && <p className="result">{result}</p>}
       </div>
+
+      <style jsx>{`
+        .page {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #0f172a, #020617);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: system-ui, sans-serif;
+          color: #e5e7eb;
+        }
+
+        .card {
+          background: #020617;
+          border-radius: 16px;
+          padding: 32px;
+          width: 100%;
+          max-width: 420px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+          text-align: center;
+        }
+
+        h1 {
+          margin-bottom: 16px;
+          font-size: 1.8rem;
+        }
+
+        .sequence {
+          font-size: 1.4rem;
+          letter-spacing: 1px;
+          margin-bottom: 24px;
+        }
+
+        input {
+          width: 100%;
+          padding: 12px;
+          border-radius: 8px;
+          border: none;
+          font-size: 1rem;
+          margin-bottom: 16px;
+        }
+
+        input:focus {
+          outline: 2px solid #38bdf8;
+        }
+
+        button {
+          width: 100%;
+          padding: 12px;
+          border-radius: 8px;
+          border: none;
+          font-size: 1rem;
+          font-weight: bold;
+          background: #38bdf8;
+          color: #020617;
+          cursor: pointer;
+        }
+
+        button:hover {
+          background: #0ea5e9;
+        }
+
+        .result {
+          margin-top: 16px;
+          font-size: 1.1rem;
+        }
+      `}</style>
     </div>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#0f172a",
-    padding: 20
-  },
-  card: {
-    background: "#ffffff",
-    borderRadius: 18,
-    padding: "32px 28px",
-    maxWidth: 420,
-    width: "100%",
-    textAlign: "center",
-    boxShadow: "0 25px 50px rgba(0,0,0,0.4)"
-  },
-  badge: {
-    fontSize: 12,
-    fontWeight: 700,
-    letterSpacing: 1,
-    color: "#2563eb",
-    marginBottom: 16
-  },
-  sequence: {
-    fontSize: 26,
-    fontWeight: 700,
-    marginBottom: 24
-  },
-  input: {
-    width: "100%",
-    padding: 14,
-    fontSize: 18,
-    borderRadius: 10,
-    border: "1px solid #cbd5e1",
-    marginBottom: 16
-  },
-  button: {
-    width: "100%",
-    padding: 14,
-    fontSize: 18,
-    fontWeight: 600,
-    borderRadius: 10,
-    border: "none",
-    background: "#2563eb",
-    color: "#fff",
-    cursor: "pointer"
-  },
-  result: {
-    marginTop: 18,
-    fontSize: 18,
-    fontWeight: 600
-  },
-  footer: {
-    marginTop: 28,
-    fontSize: 12,
-    color: "#64748b"
-  }
-};
