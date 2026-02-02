@@ -13,12 +13,13 @@ app.get("/puzzle/today", (req, res) => {
 
 app.post("/puzzle/answer", (req, res) => {
   const { answer } = req.body;
+
   res.json({
     correct: Number(answer) === 30
   });
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log("Backend running on port " + PORT);
 });

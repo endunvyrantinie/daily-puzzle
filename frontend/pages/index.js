@@ -17,13 +17,14 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer })
     });
+
     const data = await res.json();
     setResult(data.correct);
   };
 
   return (
-    <main style={{ padding: 40 }}>
-      <h1>🧠 Daily Puzzle</h1>
+    <main style={{ padding: 40, fontFamily: "Arial" }}>
+      <h1>🧠 Daily Pattern Puzzle</h1>
 
       <h2>{sequence.join(" → ")} → ?</h2>
 
@@ -31,18 +32,20 @@ export default function Home() {
         type="number"
         value={answer}
         onChange={e => setAnswer(e.target.value)}
+        style={{ padding: 8, fontSize: 16 }}
       />
 
       <br /><br />
 
-      <button onClick={submitAnswer}>
+      <button onClick={submitAnswer} style={{ padding: 10 }}>
         Submit
       </button>
 
       {result !== null && (
-        <p>{result ? "✅ Correct!" : "❌ Wrong"}</p>
+        <p style={{ marginTop: 20 }}>
+          {result ? "✅ Correct!" : "❌ Wrong"}
+        </p>
       )}
     </main>
   );
 }
-
